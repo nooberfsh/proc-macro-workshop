@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Ident, Attribute, Type, LitStr, Meta, Lit};
+use syn::{parse_macro_input, parse_quote, DeriveInput, Data, Fields, Ident, Attribute, Type, LitStr, Meta, Lit, Generics, GenericParam};
 use quote::{quote, quote_spanned};
 use proc_macro2::Span;
 
@@ -88,14 +88,27 @@ fn ss<T: ToString, I: IntoIterator<Item = T>>(i: I) -> impl Iterator<Item = LitS
     i.into_iter().map(|d| s(&d))
 }
 
+// add debug bound
+fn add_trait_bounds(mut generics: Generics) -> Generics {
+    for param in &mut generics.params {
+        if let GenericParam::Type(ref mut type_param) = *param {
+            type_param.bounds.push(parse_quote!(::std::fmt::Debug));
+        }
+    }
+    generics
+}
+
 fn derive_impl(input: &DeriveInput) -> Result<TokenStream, TokenStream> {
     let fields = extract_named_struct_fields_and_attr(input)?;
     let field_idents = fields.iter().map(|f| &f.ident);
     let struct_ident = &input.ident;
     let format_str = gen_fmt_str(&struct_ident, &fields);
 
+    let generics = add_trait_bounds(input.generics.clone());
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     let ret = quote! {
-        impl ::std::fmt::Debug for #struct_ident {
+        impl #impl_generics ::std::fmt::Debug for #struct_ident #ty_generics #where_clause {
             fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 fmt.write_fmt(format_args!(#format_str  #(, self.#field_idents)*))
             }
