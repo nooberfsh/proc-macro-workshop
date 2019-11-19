@@ -8,13 +8,12 @@
 
 fn main() {}
 
-use derive_builder::Builder2;
+use derive_debug::CustomDebug;
 
-#[derive(Builder2)]
-pub struct Command {
-    executable: String,
-    #[builder2(each = "arg")]
-    args: Vec<String>,
-    env: Vec<String>,
-    current_dir: String,
+#[derive(CustomDebug)]
+pub struct XxField {
+    name: &'static str,
+    bitmask: u8,
 }
+
+
