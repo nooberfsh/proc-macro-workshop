@@ -8,16 +8,19 @@
 
 fn main() {}
 
+
 use derive_debug::CustomDebug;
+use std::fmt::Debug;
 use std::marker::PhantomData;
 
-
-type S = String;
+pub trait Trait {
+    type Value;
+}
 
 #[derive(CustomDebug)]
-pub struct Field<T> {
-    marker: PhantomData<T>,
-    string: S,
-    #[debug = "0b{:08b}"]
-    bitmask: u8,
+pub struct Field<T: Trait, F, G> {
+    f: F,
+    g: PhantomData<G>,
+    values: Vec<T::Value>,
 }
+
