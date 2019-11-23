@@ -9,13 +9,15 @@
 fn main() {}
 
 use derive_debug::CustomDebug;
+use std::marker::PhantomData;
 
 
+type S = String;
 
 #[derive(CustomDebug)]
 pub struct Field<T> {
-    value: T,
+    marker: PhantomData<T>,
+    string: S,
     #[debug = "0b{:08b}"]
     bitmask: u8,
 }
-
