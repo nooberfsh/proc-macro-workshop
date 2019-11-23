@@ -133,6 +133,25 @@ fn extract_format(attr: &Attribute) -> std::result::Result<LitStr, proc_macro::T
     Err(e.into())
 }
 
+fn extract_bound(attr: &Attribute) -> std::result::Result<WherePredicate, proc_macro::TokenStream> {
+    let meta = attr.parse_meta().map_err(|e|e.to_compile_error())?;
+    let span = attr.span();
+    if let Meta::List(l) = meta {
+        if l.nested.len() == 1 {
+            if let NestedMeta::Meta(Meta::NameValue(nv))  = l.nested.first().unwrap() {
+                if let Lit::Str(s) = &nv.lit {
+                    let wp = parse_str(&s.value()).map_err(|e|e.to_compile_error())?;
+                    return Ok(wp)
+                }
+            }
+        }
+    }
+    let e = quote_spanned! { span =>
+        compile_error!("expected attribute with named value");
+    };
+    Err(e.into())
+}
+
 fn extract_named_struct_fields(input: &DeriveInput) -> std::result::Result<Vec<NamedStructField>, proc_macro::TokenStream> {
     let span = input.span();
     if let Data::Struct(s) = &input.data {
@@ -196,7 +215,15 @@ fn derive_impl(input: &DeriveInput) -> std::result::Result<proc_macro::TokenStre
     let struct_ident = &input.ident;
     let format_str = gen_fmt_str(&struct_ident, &fields);
 
-    let generics = add_trait_bounds(input.generics.clone(), &fields);
+    let generics = if let Some(attr) = input.attrs.get(0) {
+        let mut generics = input.generics.clone();
+        let wp = extract_bound(attr)?;
+        let w: WhereClause = parse_quote!(where #wp);
+        generics.where_clause = Some(w);
+        generics
+    } else {
+        add_trait_bounds(input.generics.clone(), &fields)
+    };
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     let ret = quote! {
