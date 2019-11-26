@@ -194,17 +194,74 @@ fn gen_ident_tail(ident: &Ident, n: usize, count: usize, tail: &Ident) -> Ident 
 }
 
 impl Seq {
-    fn expand(&self) -> Result<TokenStream> {
+    fn expand_impl(&self, stream: &TokenStream) -> Result<TokenStream> {
         let mut ret = vec![];
         for i in self.start..self.end {
             let mut state = State::new(self.ident.clone(), i);
-            let stream = state.accept(self.content.clone())?;
+            let stream = state.accept(stream.clone())?;
             //println!("num: {}, stream: {}", i, stream);
             ret.push(stream)
         }
         Ok(ret.into_iter().collect())
     }
+
+    fn expand(&self) -> Result<TokenStream> {
+        match self.handle_repeat(self.content.clone())? {
+            Some(s) =>  {
+                Ok(s)
+            }
+            None =>  {
+                self.expand_impl(&self.content)
+            }
+        }
+    }
+
+    fn handle_repeat(&self, content: TokenStream) -> Result<Option<TokenStream>> {
+        let mut iter = content.into_iter();
+        let mut ret = vec![];
+        let mut has_repeat = false;
+        while let Some(tt) = iter.next() {
+            match tt {
+                TokenTree::Punct(p) if p.as_char() == '#' => {
+                    let next_token = iter.next();
+                    let next_next_token = iter.next();
+                    match (&next_token, &next_next_token) {
+                        (Some(TokenTree::Group(g)), Some(TokenTree::Punct(p))) if p.as_char() == '*' =>  {
+                            let expanded = self.expand_impl(&g.stream())?;
+                            ret.extend(expanded);
+                            has_repeat = true;
+                        },
+                        _ => {
+                            ret.push(p.into());
+                            if let Some(t) = next_token {
+                                ret.push(t)
+                            }
+                            if let Some(t) = next_next_token {
+                                ret.push(t)
+                            }
+                        }
+                    }
+                }
+                TokenTree::Group(g) => {
+                    if let Some(s) = self.handle_repeat(g.stream())? {
+                        let new_tt = Group::new(g.delimiter(), s);
+                        ret.push(new_tt.into());
+                        has_repeat = true;
+                    } else {
+                        ret.push(g.into());
+                    }
+                }
+                _ => ret.push(tt),
+            }
+        }
+        if has_repeat {
+            Ok(Some(ret.into_iter().collect()))
+        } else {
+            Ok(None)
+        }
+    }
 }
+
 
 impl Parse for Seq {
     fn parse(input: ParseStream) -> Result<Self> {
@@ -226,7 +283,6 @@ impl Parse for Seq {
 #[proc_macro]
 pub fn seq(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let seq: Seq = parse_macro_input!(input);
-    //println!("{}", seq.content);
     match seq.expand() {
         Ok(d) => d.into(),
         Err(e) => e.to_compile_error().into(),
