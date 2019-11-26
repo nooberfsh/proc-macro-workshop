@@ -15,4 +15,7 @@ bitfield = { path = "bitfield" }
 derive_builder = { path = "builder" }
 derive_debug = { path = "debug" }
 seq = { path = "seq" }
+eseq = { path = "eseq" }
 sorted = { path = "sorted" }
+proc-macro-hack = "0.5.11"
+

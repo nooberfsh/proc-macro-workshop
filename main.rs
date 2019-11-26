@@ -7,22 +7,22 @@
 //     $ cargo run
 
 
-use seq::seq;
 
-seq!(N in 0..16 {
-    #[derive(Copy, Clone, PartialEq, Debug)]
-    enum Interrupt {
-        #(
-            Irq#N,
-        )*
-    }
-});
+
+use eseq::eseq;
 
 fn main() {
-    let interrupt = Interrupt::Irq8;
+    let tuple = (9u8, 90u16, 900u32, 9000u64);
 
-    assert_eq!(interrupt as u8, 8);
-    assert_eq!(interrupt, Interrupt::Irq8);
+    let mut sum = 0;
+
+    eseq!(N in 0..4 {{
+        #(
+            sum += tuple.N as u64;
+        )*
+    }});
+
+    assert_eq!(sum, 9999);
 }
 
 

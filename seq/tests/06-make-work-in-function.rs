@@ -52,7 +52,7 @@
 //   - A stable workaround for procedural macros inside a function body:
 //     https://github.com/dtolnay/proc-macro-hack
 
-use seq::eseq;
+use eseq::eseq;
 
 fn main() {
     let tuple = (9u8, 90u16, 900u32, 9000u64);

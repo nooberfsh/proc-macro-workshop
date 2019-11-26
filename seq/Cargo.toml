@@ -14,8 +14,11 @@ path = "tests/progress.rs"
 
 [dev-dependencies]
 trybuild = "1.0"
+eseq = { path = "../eseq" }
 
 [dependencies]
 syn = {version = "1.0", features = ["default", "extra-traits", "full"]}
 quote = "1.0"
 proc-macro2 = "1.0"
+proc-macro-hack = "0.5.11"
+

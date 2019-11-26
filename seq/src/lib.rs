@@ -3,6 +3,7 @@ extern crate proc_macro;
 use syn::*;
 use syn::parse::*;
 use proc_macro2::{TokenStream, TokenTree, Literal, Group};
+use proc_macro_hack::proc_macro_hack;
 use quote::*;
 
 #[derive(Debug)]
@@ -287,4 +288,9 @@ pub fn seq(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Ok(d) => d.into(),
         Err(e) => e.to_compile_error().into(),
     }
+}
+
+#[proc_macro_hack]
+pub fn eseq(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    seq(input)
 }
