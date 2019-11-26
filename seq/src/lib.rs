@@ -270,9 +270,16 @@ impl Parse for Seq {
         input.parse::<Token![in]>()?;
         let s: LitInt = input.parse()?;
         let start = s.base10_parse::<usize>()?;
-        input.parse::<Token![..]>()?;
+        let inclusive = if input.peek(Token![..=]) {
+            input.parse::<Token![..=]>().unwrap();
+            true
+        } else {
+            input.parse::<Token![..]>()?;
+            false
+        };
         let e: LitInt = input.parse()?;
-        let end = e.base10_parse::<usize>()?;
+        let mut end = e.base10_parse::<usize>()?;
+        if inclusive { end += 1}
         let c;
         braced!(c in input);
         let content : TokenStream = c.parse()?;

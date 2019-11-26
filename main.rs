@@ -9,20 +9,18 @@
 
 
 
-use eseq::eseq;
+use seq::seq;
+
+seq!(N in 16..=20 {
+    enum E {
+        #(
+            Variant#N,
+        )*
+    }
+});
+
 
 fn main() {
-    let tuple = (9u8, 90u16, 900u32, 9000u64);
-
-    let mut sum = 0;
-
-    eseq!(N in 0..4 {{
-        #(
-            sum += tuple.N as u64;
-        )*
-    }});
-
-    assert_eq!(sum, 9999);
 }
 
 
