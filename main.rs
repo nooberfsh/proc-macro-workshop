@@ -9,10 +9,24 @@
 
 
 
+
 use seq::seq;
 
-seq!(N in 0..4 {
-    compile_error!(concat!("error number ", stringify!(N)));
+//fn f#N () -> u64 { N * 2
+//}
+seq!(N in 1..3 {
+    fn f#N () -> u64 {
+        N * 2
+    }
 });
 
-fn main() {}
+fn f0() -> u64 {
+    100
+}
+
+fn main() {
+//    let sum = f0() + f1() + f2() + f3();
+//
+//    assert_eq!(sum, 100 + 2 + 4 + 6);
+}
+
