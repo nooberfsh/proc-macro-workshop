@@ -13,3 +13,19 @@
 pub use bitfield_impl::bitfield;
 
 // TODO other things
+//
+
+pub trait Specifier {
+    const BITS: usize;
+}
+
+
+use seq::seq;
+
+seq!(N in 1..=64 {
+    pub enum B#N {}
+    
+    impl Specifier for B#N {
+        const BITS: usize = N;
+    }
+});

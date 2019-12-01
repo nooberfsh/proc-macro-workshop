@@ -9,12 +9,19 @@
 
 
 
+trait Specifier {
+    const BITS: usize;
+}
+
+
 use seq::seq;
 
-seq!(N in 0..1 {
-    fn main() {
-        let _ = Missing#N;
+seq!(N in 1..=64 {
+    enum B#N {}
+    
+    impl Specifier for B#N {
+        const BITS: usize = N;
     }
 });
 
-
+fn main() {}
