@@ -18,8 +18,7 @@ struct Seq {
 #[derive(Clone)]
 enum StateKind {
     Empty,
-    Ident(Ident),
-    IdentPound(Ident),
+    Ident(Ident), IdentPound(Ident),
     IdentPoundNum(Ident, usize),
     IdentPoundNumPound(Ident, usize),
 }

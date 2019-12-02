@@ -9,19 +9,14 @@
 
 
 
-trait Specifier {
-    const BITS: usize;
+use bitfield::*;
+
+#[bitfield]
+pub struct MyFourBytes {
+    a: B1,
+    b: B3,
+    c: B4,
+    d: B24,
 }
-
-
-use seq::seq;
-
-seq!(N in 1..=64 {
-    enum B#N {}
-    
-    impl Specifier for B#N {
-        const BITS: usize = N;
-    }
-});
 
 fn main() {}
