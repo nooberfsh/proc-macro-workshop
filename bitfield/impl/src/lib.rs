@@ -30,9 +30,24 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
     };
 
     let tyes: Vec<Type> = fields.iter().map(|f| f.ty.clone()).collect();
-    let get_set: Vec<_> = fields.iter().map(|f| {
+    let get_set: Vec<_> = fields.iter().enumerate().map(|(i, f)| {
         let ty = &f.ty;
         let id = f.ident.as_ref().unwrap();
+
+        let prev_tyes = &tyes[0..i];
+        let idx_f_name = format_ident!("{}_idx", id);
+        let idx_fn = if prev_tyes.is_empty() {
+            quote! {
+                fn #idx_f_name(&self) -> (usize, usize) { (0, 0) }
+            }
+        } else {
+            quote! {
+                fn #idx_f_name(&self) -> (usize, usize) {
+                    let prev_sum = #(<#prev_tyes as Specifier>::BITS)+*;
+                    (prev_sum / 8, prev_sum % 8)
+                }
+            }
+        };
 
         let getter = format_ident!("get_{}", id);
         let setter = format_ident!("set_{}", id);
@@ -44,6 +59,8 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
 
             fn #setter(&mut self, data: <#ty as Specifier>::Container) {
             }
+
+            #idx_fn
         }
     }).collect();
 

@@ -14,4 +14,4 @@ trybuild = "1.0"
 
 [dependencies]
 bitfield-impl = { path = "impl" }
-seq = { path = "../seq" }
+byte = { path = "byte" }
