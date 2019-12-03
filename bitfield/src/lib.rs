@@ -32,11 +32,17 @@ pub fn set_byte(buf: &mut [u8], buf_idx: usize, byte: u8, len: usize) {
     let head = buf[buf_idx / 8];
 
     if len <= p {
-        let high = ( head >> (k + len) ) << (k + len);
+        let high = if len == p {
+            0
+        } else {
+            let mask = (2u8.pow((len + k) as u32) - 1).reverse_bits();
+            head & mask
+        };
+
         let mid = byte << k;
         let mask = 2u8.pow(k as u32) - 1;
         let low = head & mask;
-        buf[buf_idx / 8] = low & mid & high;
+        buf[buf_idx / 8] = low | mid | high;
     } else {
         // handle first byte
         let mask_low = 2u8.pow(k as u32) - 1;
@@ -50,7 +56,7 @@ pub fn set_byte(buf: &mut [u8], buf_idx: usize, byte: u8, len: usize) {
         let next = buf[buf_idx / 8 + 1];
         let mask_high = (2u8.pow((len - p) as u32) - 1).reverse_bits();
         let high =  next & mask_high;
-        buf[buf_idx / 8 + 1] = low & high;
+        buf[buf_idx / 8 + 1] = low | high;
     }
 }
 
@@ -64,8 +70,12 @@ pub fn get_byte(buf: &[u8], buf_idx: usize, len: usize)  -> u8 {
     let head = buf[buf_idx / 8];
 
     if len <=  p {
-        let mask =  2u8.pow(len as u32) - 1;
-        ( head >> k ) & mask
+        if len == 8 {
+            head
+        } else {
+            let mask =  2u8.pow(len as u32) - 1;
+            ( head >> k ) & mask
+        }
     } else {
         let next = buf[buf_idx / 8 + 1];
         let left = len - p;

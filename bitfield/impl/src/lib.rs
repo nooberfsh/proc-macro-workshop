@@ -96,12 +96,19 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
     };
 
     let ret = quote! {
+        #[derive(Debug)]
         #[repr(C)]
         pub struct #name {
             data: [u8; #size],
         }
 
         impl #name {
+            pub fn new() -> Self {
+                #name {
+                    data: [0u8; #size],
+                }
+            }
+
             #(#get_set )*
         }
     };
