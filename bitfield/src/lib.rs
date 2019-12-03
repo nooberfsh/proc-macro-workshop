@@ -22,8 +22,36 @@ pub trait Specifier {
     type Container;
 }
 
-pub fn set(buf: &mut [u8], buf_idx: usize, data: &[u8], bit_size: usize) {
-    todo!()
+#[inline]
+pub fn set_byte(buf: &mut [u8], buf_idx: usize, byte: u8, len: usize) {
+    debug_assert!(len <= 8);
+
+    let k = buf_idx % 8;
+    let p = 8 - k;
+    
+    let head = buf[buf_idx / 8];
+
+    if len <= p {
+        let high = ( head >> (k + len) ) << (k + len);
+        let mid = byte << k;
+        let mask = 2u8.pow(k as u32) - 1;
+        let low = head & mask;
+        buf[buf_idx / 8] = low & mid & high;
+    } else {
+        // handle first byte
+        let mask_low = 2u8.pow(k as u32) - 1;
+        let low = head & mask_low;
+        let mask_high = 2u8.pow(p as u32) - 1;
+        let high = (byte & mask_high) << k;
+        buf[buf_idx / 8] = low & high;
+        
+        // handle next byte
+        let low = byte >> p;
+        let next = buf[buf_idx / 8 + 1];
+        let mask_high = (2u8.pow((len - p) as u32) - 1).reverse_bits();
+        let high =  next & mask_high;
+        buf[buf_idx / 8 + 1] = low & high;
+    }
 }
 
 #[inline]
