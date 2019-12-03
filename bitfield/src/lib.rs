@@ -88,3 +88,23 @@ pub fn get_byte(buf: &[u8], buf_idx: usize, len: usize)  -> u8 {
 
 
 byte!(B#64);
+
+pub trait A {}
+pub mod checks {
+    pub trait TotalSizeIsMultipleOfEightBits {}
+    pub trait Array { type Content; }
+
+    pub struct ZeroMod8;
+    pub struct SevenMod8;
+
+    impl TotalSizeIsMultipleOfEightBits for ZeroMod8 {}
+    
+    impl Array  for [u8; 0] {
+        type Content = ZeroMod8;
+    }
+
+    impl Array for [u8; 7] {
+        type Content = SevenMod8;
+    }
+
+}

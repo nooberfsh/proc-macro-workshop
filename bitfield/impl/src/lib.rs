@@ -95,12 +95,21 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
         (#(<#tyes as Specifier>::BITS)+*) / 8
     };
 
+    let is_multiple8 = quote! {
+        (#(<#tyes as Specifier>::BITS)+*) % 8
+    };
+
     let ret = quote! {
         #[derive(Debug)]
         #[repr(C)]
         pub struct #name {
             data: [u8; #size],
         }
+
+
+        use ::bitfield::checks::{Array, TotalSizeIsMultipleOfEightBits};
+        trait AssertMultiple8: TotalSizeIsMultipleOfEightBits {}
+        impl AssertMultiple8 for  <[u8; #is_multiple8] as Array>::Content {}
 
         impl #name {
             pub fn new() -> Self {
