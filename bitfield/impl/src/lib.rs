@@ -38,13 +38,13 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
         let idx_f_name = format_ident!("{}_idx", id);
         let idx_fn = if prev_tyes.is_empty() {
             quote! {
-                fn #idx_f_name(&self) -> (usize, usize) { (0, 0) }
+                fn #idx_f_name(&self) -> usize { 0 }
             }
         } else {
             quote! {
-                fn #idx_f_name(&self) -> (usize, usize) {
+                fn #idx_f_name(&self) -> usize {
                     let prev_sum = #(<#prev_tyes as Specifier>::BITS)+*;
-                    (prev_sum / 8, prev_sum % 8)
+                    prev_sum
                 }
             }
         };
@@ -53,11 +53,15 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
         let setter = format_ident!("set_{}", id);
 
         quote! {
-            fn #getter(&self) -> <#ty as Specifier>::Container {
-                todo!()
+            fn #setter(&mut self, data: <#ty as Specifier>::Container) {
+                let buf_idx = self.#idx_f_name();
+                let data = data.to_ne_bytes();
+                let bit_size = <#ty as Specifier>::BITS;
+                ::bitfield::set(&mut self.data, buf_idx, &data, bit_size);
             }
 
-            fn #setter(&mut self, data: <#ty as Specifier>::Container) {
+            fn #getter(&self) -> <#ty as Specifier>::Container {
+                todo!()
             }
 
             #idx_fn

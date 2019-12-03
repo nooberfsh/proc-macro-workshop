@@ -20,10 +20,10 @@ pub trait Specifier {
     const BITS: usize;
     const SIZE: usize = Self::BITS;
     type Container;
-    
-    //fn get(buf: &[u8]) -> Self::Container
+}
 
-    //fn set(buf: &[u8], data: Self::Container)
+pub fn set(buf: &mut [u8], buf_idx: usize, data: &[u8], bit_size: usize) {
+    todo!()
 }
 
 
