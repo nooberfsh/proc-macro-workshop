@@ -26,5 +26,11 @@ pub fn set(buf: &mut [u8], buf_idx: usize, data: &[u8], bit_size: usize) {
     todo!()
 }
 
+#[inline]
+pub fn get_byte(buf: &[u8], buf_idx: usize, bit_size: usize)  -> u8 {
+    debug_assert!(bit_size <= 8);
+    todo!()   
+}
+
 
 byte!(B#64);
