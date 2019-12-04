@@ -16,7 +16,7 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 }
 
 fn derive_impl(data: DeriveInput) -> Result<TokenStream> {
-    let span = data.span();
+    let span = Span::call_site();
     let name = data.ident;
     let data = match data.data {
         Data::Enum(de) => de,
@@ -26,7 +26,7 @@ fn derive_impl(data: DeriveInput) -> Result<TokenStream> {
     let bit_size = if let Some(d) = bit_size(data.variants.len()){
         d
     } else {
-        return Err(Error::new(span, "variant num must power of 2"))
+        return Err(Error::new(span, "BitfieldSpecifier expected a number of variants which is a power of 2"))
     };
 
     let ret = quote! {
