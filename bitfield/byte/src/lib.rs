@@ -46,6 +46,21 @@ pub fn byte(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 const BITS: usize = #bit_size;
                 const SIZE: usize = #byte_size;
                 type Container = #ty;
+
+                fn get(buf: &[u8], buf_idx: usize) -> #ty {
+                    let mut ret = (0 as #ty).to_ne_bytes();
+                    let mut left_bits = Self::BITS;
+                    let mut start = buf_idx;
+
+                    for i in 0..Self::SIZE {
+                        let read_size = if left_bits > 8 { 8 } else { left_bits };
+                        let b = crate::get_byte(buf, start, read_size);
+                        ret[i] = b;
+                        left_bits -= read_size;
+                        start += read_size;
+                    }
+                    #ty::from_ne_bytes(ret)
+                }
             }
         }
     });

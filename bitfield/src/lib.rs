@@ -20,6 +20,8 @@ pub trait Specifier {
     const BITS: usize;
     const SIZE: usize = Self::BITS;
     type Container;
+
+    fn get(buf: &[u8], buf_idx: usize)  -> Self::Container;
 }
 
 #[inline]

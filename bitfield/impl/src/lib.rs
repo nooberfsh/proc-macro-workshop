@@ -96,20 +96,7 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
             }
 
             fn #getter(&self) -> <#ty as Specifier>::Container {
-                let byte_size = <#ty as Specifier>::SIZE;
-
-                let mut ret = (0 as <#ty as Specifier>::Container).to_ne_bytes();
-                let mut left_bits = <#ty as Specifier>::BITS;
-                let mut start = self.#idx_f_name();
-
-                for i in 0..byte_size {
-                    let read_size = if left_bits > 8 { 8 } else { left_bits };
-                    let b = ::bitfield::get_byte(&self.data, start, read_size);
-                    ret[i] = b;
-                    left_bits -= read_size;
-                    start += read_size;
-                }
-                <#ty as Specifier>::Container::from_ne_bytes(ret)
+                <#ty as Specifier>::get(&self.data, self.#idx_f_name())
             }
 
             #idx_fn
