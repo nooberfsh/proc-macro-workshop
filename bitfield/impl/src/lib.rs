@@ -5,6 +5,33 @@ use quote::*;
 use syn::spanned::Spanned;
 use proc_macro2::*;
 
+#[proc_macro_derive(BitfieldSpecifier)]
+pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let data = parse_macro_input!(input as DeriveInput);
+
+    match derive_impl(data) {
+        Ok(d) => d.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+fn derive_impl(data: DeriveInput) -> Result<TokenStream> {
+    let span = data.span();
+    let _name = data.ident;
+    let _data = match data.data {
+        Data::Enum(de) => de,
+        _ =>  return Err(Error::new(span, "must be enum")),
+    };
+
+    todo!()   
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 #[proc_macro_attribute]
 pub fn bitfield(args: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let _ = args;
