@@ -89,7 +89,6 @@ pub fn get_byte(buf: &[u8], buf_idx: usize, len: usize)  -> u8 {
 
 byte!(B#64);
 
-pub trait A {}
 pub mod checks {
     pub trait TotalSizeIsMultipleOfEightBits {}
     pub trait Array { type Content; }
