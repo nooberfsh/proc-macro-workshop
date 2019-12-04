@@ -124,4 +124,20 @@ pub mod checks {
         type Content = SevenMod8;
     }
 
+    /////////////////////////////////////////////////////
+    pub trait DiscriminantInRange{}
+    pub trait Array2 { type Content; }
+
+    pub struct False;
+    pub struct True;
+
+    impl DiscriminantInRange for True {}
+    
+    impl Array2  for [u8; 0] {
+        type Content = False;
+    }
+
+    impl Array2 for [u8; 1] {
+        type Content = True;
+    }
 }

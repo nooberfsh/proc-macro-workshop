@@ -23,11 +23,25 @@ fn derive_impl(data: DeriveInput) -> Result<TokenStream> {
         _ =>  return Err(Error::new(span, "must be enum")),
     };
 
-    let bit_size = if let Some(d) = bit_size(data.variants.len()){
+    let len = data.variants.len();
+
+    let bit_size = if let Some(d) = bit_size(len){
         d
     } else {
         return Err(Error::new(span, "BitfieldSpecifier expected a number of variants which is a power of 2"))
     };
+
+    let booleans = data.variants.iter().map(|v|{
+        let v_name = &v.ident;
+        let span = v.span();
+        quote_spanned! { span=>
+            ((#name::#v_name as usize) < #len) as usize
+        }
+    });
+
+    let assert_trait = data.variants.iter().map(|v|{
+        format_ident!("Assert{}", v.ident)
+    });
 
     let ret = quote! {
         impl ::bitfield::Specifier for #name {
@@ -64,6 +78,11 @@ fn derive_impl(data: DeriveInput) -> Result<TokenStream> {
                 }
             }
         }
+
+        #(
+                trait #assert_trait: ::bitfield::checks::DiscriminantInRange {}
+                impl #assert_trait for  <[u8; #booleans] as ::bitfield::checks::Array2>::Content {}
+        )*
     };
 
     Ok(ret.into())
