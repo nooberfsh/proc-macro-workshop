@@ -17,13 +17,56 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
 fn derive_impl(data: DeriveInput) -> Result<TokenStream> {
     let span = data.span();
-    let _name = data.ident;
-    let _data = match data.data {
+    let name = data.ident;
+    let data = match data.data {
         Data::Enum(de) => de,
         _ =>  return Err(Error::new(span, "must be enum")),
     };
 
-    todo!()   
+    let bit_size = if let Some(d) = bit_size(data.variants.len()){
+        d
+    } else {
+        return Err(Error::new(span, "variant num must power of 2"))
+    };
+
+    let ret = quote! {
+        impl ::bitfield::Specifier for #name {
+            const BITS: usize = #bit_size;
+            const SIZE: usize = ::std::mem::size_of::<#name>();
+            type Container = #name;
+
+            fn get(buf: &[u8], buf_idx: usize) -> #name {
+                let mut ret: [u8; Self::SIZE]= [0u8; Self::SIZE];
+                let mut left_bits = Self::BITS;
+                let mut start = buf_idx;
+
+                for i in 0..Self::SIZE {
+                    let read_size = if left_bits > 8 { 8 } else { left_bits };
+                    let b = crate::get_byte(buf, start, read_size);
+                    ret[i] = b;
+                    left_bits -= read_size;
+                    start += read_size;
+                }
+                unsafe {::std::mem::transmute(ret)}
+            }
+
+            fn set(buf: &mut [u8], buf_idx: usize, data: #name) {
+                let data: [u8; Self::SIZE] = unsafe {  ::std::mem::transmute(data)  };
+                
+                let mut left_bits = Self::BITS;
+                let mut start = buf_idx;
+
+                for i in 0..Self::SIZE {
+                    let write_size = if left_bits > 8 { 8 } else { left_bits };
+                    crate::set_byte(buf, start, data[i], write_size);
+                    left_bits -= write_size;
+                    start += write_size;
+                }
+            }
+        }
+    };
+
+    Ok(ret.into())
 }
 
 
@@ -128,4 +171,18 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
     };
 
     Ok(ret)
+}
+
+fn bit_size(mut p: usize) -> Option<usize> {
+    // is power of 2
+    if (p != 0) && ((p & (p - 1)) == 0) {
+        let mut ret = 0;
+        while p != 1 {
+            ret += 1;
+            p = p >> 1;
+        }
+        Some(ret)
+    } else {
+        None
+    }
 }
