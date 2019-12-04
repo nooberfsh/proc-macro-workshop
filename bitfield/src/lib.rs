@@ -22,6 +22,7 @@ pub trait Specifier {
     type Container;
 
     fn get(buf: &[u8], buf_idx: usize)  -> Self::Container;
+    fn set(buf: &mut [u8], buf_idx: usize, data: Self::Container);
 }
 
 #[inline]

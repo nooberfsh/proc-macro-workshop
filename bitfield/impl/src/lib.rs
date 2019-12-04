@@ -81,22 +81,13 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
 
         quote! {
             fn #setter(&mut self, data: <#ty as Specifier>::Container) {
-                let byte_size = <#ty as Specifier>::SIZE;
-                let data = data.to_ne_bytes();
-
-                let mut left_bits = <#ty as Specifier>::BITS;
-                let mut start = self.#idx_f_name();
-
-                for i in 0..byte_size {
-                    let write_size = if left_bits > 8 { 8 } else { left_bits };
-                    ::bitfield::set_byte(&mut self.data, start, data[i], write_size);
-                    left_bits -= write_size;
-                    start += write_size;
-                }
+                let buf_idx = self.#idx_f_name();
+                <#ty as Specifier>::set(&mut self.data, buf_idx, data)
             }
 
             fn #getter(&self) -> <#ty as Specifier>::Container {
-                <#ty as Specifier>::get(&self.data, self.#idx_f_name())
+                let buf_idx = self.#idx_f_name();
+                <#ty as Specifier>::get(&self.data, buf_idx)
             }
 
             #idx_fn

@@ -61,6 +61,20 @@ pub fn byte(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     }
                     #ty::from_ne_bytes(ret)
                 }
+
+                fn set(buf: &mut [u8], buf_idx: usize, data: #ty) {
+                    let data = data.to_ne_bytes();
+
+                    let mut left_bits = Self::BITS;
+                    let mut start = buf_idx;
+
+                    for i in 0..Self::SIZE {
+                        let write_size = if left_bits > 8 { 8 } else { left_bits };
+                        crate::set_byte(buf, start, data[i], write_size);
+                        left_bits -= write_size;
+                        start += write_size;
+                    }
+                }
             }
         }
     });
