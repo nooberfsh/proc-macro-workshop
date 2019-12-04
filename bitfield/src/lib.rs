@@ -67,7 +67,7 @@ pub fn set_byte(buf: &mut [u8], buf_idx: usize, byte: u8, len: usize) {
         let low = head & mask_low;
         let mask_high = 2u8.pow(p as u32) - 1;
         let high = (byte & mask_high) << k;
-        buf[buf_idx / 8] = low & high;
+        buf[buf_idx / 8] = low | high;
         
         // handle next byte
         let low = byte >> p;
@@ -100,7 +100,7 @@ pub fn get_byte(buf: &[u8], buf_idx: usize, len: usize)  -> u8 {
         let mask = 2u8.pow(left as u32) - 1;
         let high =  ( next & mask ) << p;
         let low = head >> k;
-        low & high
+        low | high
     }
 }
 

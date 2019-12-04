@@ -118,6 +118,27 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
             Fields::Unit => return Err(Error::new(s.span(), "field can not be unit")),
     };
 
+    let mut assert_attrs = vec![];
+    for f in &fields {
+        let ty = &f.ty;
+        for attr in &f.attrs {
+            let meta = attr.parse_meta()?;
+            if let Meta::NameValue(nv) = meta {
+                if let Some(i) = nv.path.get_ident() {
+                    if i == "bits" {
+                        let lit = &nv.lit;
+                        let span = lit.span();
+
+                        let ret = quote_spanned! { span=>
+                            let _: [(); #lit] = [(); <#ty as Specifier>::BITS];
+                        };
+                        assert_attrs.push(ret);
+                    }
+                }
+            }
+        }
+    }
+
     let tyes: Vec<Type> = fields.iter().map(|f| f.ty.clone()).collect();
     let get_set: Vec<_> = fields.iter().enumerate().map(|(i, f)| {
         let ty = &f.ty;
@@ -174,9 +195,14 @@ fn trans(s: ItemStruct) -> Result<TokenStream> {
         }
 
 
-        use ::bitfield::checks::{Array, TotalSizeIsMultipleOfEightBits};
-        trait AssertMultiple8: TotalSizeIsMultipleOfEightBits {}
-        impl AssertMultiple8 for  <[u8; #is_multiple8] as Array>::Content {}
+        trait AssertMultiple8: ::bitfield::checks::TotalSizeIsMultipleOfEightBits {}
+        impl AssertMultiple8 for  <[u8; #is_multiple8] as ::bitfield::checks::Array>::Content {}
+
+        fn _assert() {
+            #(
+                #assert_attrs
+            )*
+        }
 
         impl #name {
             pub fn new() -> Self {
